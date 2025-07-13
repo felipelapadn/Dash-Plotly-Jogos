@@ -110,5 +110,5 @@ Com base nas ideias acima, as colunas que serão priorizadas serão:
 
 ### Link do Dataset
 
-Baixe o dataset em: [Steam Games Dataset 2025](https://www.kaggle.com/datasets/artermiloff/steam-games-dataset)
+Baixe o dataset em: [Steam Games Dataset 2025](https://www.kaggle.com/datasets/artermiloff/steam-games-dataset)         
 Em seguida, coloque o arquivo baixado em `data/raw/` caso queira rodar o notebook de tratamento.
