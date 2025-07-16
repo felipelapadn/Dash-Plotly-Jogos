@@ -17,12 +17,13 @@ df = df.sort_values(by="recommendations", ascending=False)
 
 colors = ['lightblue' for i in range(10)]
 
-fig = px.bar(df[:10], x='recommendations', y='name', title='Jogos Mais Recomendados', orientation='h',
-                 category_orders={'name': df['name'].tolist()})
-fig.update_traces(marker_color=colors) 
-fig.update_layout(
-        template='plotly_white',
-)
+series_genero = df.tags_sep.apply(lambda x: eval(x))
+stack_genero = list()
+for i in series_genero:
+    stack_genero.extend(i)
+stack_genero = set(stack_genero)
+
+fig = go.Figure()
 
 fig_atividade = go.Figure()
 
@@ -31,14 +32,25 @@ fig_jogo_preco = go.Figure()
 layout = dbc.Container([
     html.Br(),
     dbc.Row([
-        dcc.DatePickerRange(
+        dbc.Col(dcc.DatePickerRange(
             id='filtro-data',
             min_date_allowed=df['release_date'].min(),
             max_date_allowed=df['release_date'].max(),
             start_date=df['release_date'].min(),
             end_date=df['release_date'].max(),
             display_format='DD-MM-YYYY'
-        )
+        )),
+        dbc.Col(dcc.Dropdown(
+            id='filtro-genero',
+            options=[
+                {'label': genero, 'value': genero} for genero in sorted(stack_genero)
+            ],
+            placeholder='Selecione o gênero',
+            searchable=True, 
+            clearable=True, 
+            multi=False,
+            style={'width': '100%'}
+        ))
     ]), 
     dbc.Row([
         dbc.Col(
@@ -61,23 +73,31 @@ layout = dbc.Container([
 ])
 
 @callback(
-    Output('grafico-jogos', 'figure', allow_duplicate=True),
+    Output('grafico-jogos', 'figure'),
     Input('filtro-data', 'start_date'),
     Input('filtro-data', 'end_date'),
-    prevent_initial_call=True
+    Input('filtro-genero', 'value'),
 )
-def atualizar_grafico(start_date, end_date):
-    if start_date is None or end_date is None:
-        filtered_df = df.copy()
-    else:
-        filtered_df = df[(df['release_date'] >= start_date) & (df['release_date'] <= end_date)]
-        filtered_df.reset_index(drop=True, inplace=True)
+def atualizar_grafico(start_date, end_date, value):
+    filtered_df = df.copy()
+
+    if value:
+        filtered_df = filtered_df[filtered_df['tags_sep'].apply(lambda tags: value in tags)]
+
+    if start_date and end_date:
+        filtered_df = filtered_df[
+            (filtered_df['release_date'] >= start_date) &
+            (filtered_df['release_date'] <= end_date)
+        ]
+
+    filtered_df.reset_index(drop=True, inplace=True)
 
     fig = px.bar(filtered_df[:10], x='recommendations', y='name', title='Jogos Mais Recomendados', orientation='h',
-                 category_orders={'name': filtered_df[:10]['name'].tolist()}, color="lightblue")
+                 category_orders={'name': filtered_df[:10]['name'].tolist()})
     
+    fig.update_traces(marker_color=colors) 
     fig.update_layout(
-        template='plotly_white',
+            template='plotly_white',
     )
     
     return fig
@@ -87,13 +107,21 @@ def atualizar_grafico(start_date, end_date):
     Input('grafico-jogos', 'clickData'),
     Input('filtro-data', 'start_date'),
     Input('filtro-data', 'end_date'),
+    Input('filtro-genero', 'value'),
 )
-def mostrar_imagem(clickData, start_date, end_date):
-    if start_date is None or end_date is None:
-        filtered_df = df.copy()
-    else:
-        filtered_df = df[(df['release_date'] >= start_date) & (df['release_date'] <= end_date)]
-        filtered_df.reset_index(drop=True, inplace=True)
+def mostrar_imagem(clickData, start_date, end_date, value):
+    filtered_df = df.copy()
+
+    if value:
+        filtered_df = filtered_df[filtered_df['tags_sep'].apply(lambda tags: value in tags)]
+
+    if start_date and end_date:
+        filtered_df = filtered_df[
+            (filtered_df['release_date'] >= start_date) &
+            (filtered_df['release_date'] <= end_date)
+        ]
+
+    filtered_df.reset_index(drop=True, inplace=True)
         
     if clickData:
         jogo = clickData['points'][0]['y']
@@ -110,13 +138,22 @@ def mostrar_imagem(clickData, start_date, end_date):
     Input('grafico-jogos', 'clickData'),
     Input('filtro-data', 'start_date'),
     Input('filtro-data', 'end_date'),
+    Input('filtro-genero', 'value'),
+
 )
-def atualizar_grafico_atividade(clickData, start_date, end_date):
-    if start_date is None or end_date is None:
-        filtered_df = df.copy()
-    else:
-        filtered_df = df[(df['release_date'] >= start_date) & (df['release_date'] <= end_date)]
-        filtered_df.reset_index(drop=True, inplace=True)
+def atualizar_grafico_atividade(clickData, start_date, end_date, value):
+    filtered_df = df.copy()
+
+    if value:
+        filtered_df = filtered_df[filtered_df['tags_sep'].apply(lambda tags: value in tags)]
+
+    if start_date and end_date:
+        filtered_df = filtered_df[
+            (filtered_df['release_date'] >= start_date) &
+            (filtered_df['release_date'] <= end_date)
+        ]
+
+    filtered_df.reset_index(drop=True, inplace=True)
         
     top10 = filtered_df[:10]
     x = top10.recommendations.values
@@ -166,25 +203,33 @@ def atualizar_grafico_atividade(clickData, start_date, end_date):
     Input('grafico-jogos', 'clickData'),
     Input('filtro-data', 'start_date'),
     Input('filtro-data', 'end_date'),
+    Input('filtro-genero', 'value'),
 )
-def atualizar_grafico_atividade(clickData, start_date, end_date):
-    
-    if start_date is None or end_date is None:
-        filtered_df = df.copy()
-    else:
-        filtered_df = df[(df['release_date'] >= start_date) & (df['release_date'] <= end_date)]
-        filtered_df.reset_index(drop=True, inplace=True)
+def atualizar_grafico_media_preco(clickData, start_date, end_date, value):
         
+    filtered_df = df.copy()
+
+    if value:
+        filtered_df = filtered_df[filtered_df['tags_sep'].apply(lambda tags: value in tags)]
+
+    if start_date and end_date:
+        filtered_df = filtered_df[
+            (filtered_df['release_date'] >= start_date) &
+            (filtered_df['release_date'] <= end_date)
+        ]
+
+    filtered_df.reset_index(drop=True, inplace=True)
+           
     if clickData:
         jogo = clickData['points'][0]['y']
         idx = filtered_df[filtered_df['name'] == jogo]['header_image'].index.values[0]
     else:
         idx = 0
         jogo = filtered_df.name.iloc[0]
+        
     prices = filtered_df[:10].price.values
     colors = ['crimson' if i == idx else 'lightblue' for i in range(len(prices))]
     media_sem_idx0 = np.mean(np.delete(prices, idx))
-
     fig_jogo_preco = go.Figure()
 
     fig_jogo_preco.add_trace(go.Bar(
@@ -218,7 +263,8 @@ def atualizar_grafico_atividade(clickData, start_date, end_date):
             xanchor="center",     
             x=0.5                   
         ),
-        margin=dict(t=75)
+        margin=dict(t=75) 
     )
-    
+    fig_jogo_preco.update_yaxes(range=[0, max(prices) * 1.15])
+
     return fig_jogo_preco

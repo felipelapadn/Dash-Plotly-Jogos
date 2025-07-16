@@ -1,7 +1,9 @@
 import dash
 import dash_bootstrap_components as dbc
 from dash import Input, Output, dcc, html
-from pages.pagina_indv_jogo import layout as teste_layout
+from pages.pagina_indv_jogo import layout as pagina_indv_jogo
+from pages.pagina_detalhes_tec import layout as pagina_detalhes
+
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -27,12 +29,11 @@ sidebar = html.Div(
     [
         html.H2("Dashboard de Jogos", className="display-5"),
         html.Hr(),
-        html.P("A simple sidebar layout with navigation links", className="lead"),
+        html.P("Dashboard interativo com visualizações sobre jogos mais recomendados e estatísticas da base Steam.", className="lead"),
         dbc.Nav(
             [
-                dbc.NavLink("Home", href="/", active="exact"),
-                dbc.NavLink("Page 1", href="/teste", active="exact"),
-                dbc.NavLink("Page 2", href="/page-2", active="exact"),
+                dbc.NavLink("Top 10 Jogos Mais Recomendados", href="/", active="exact"),
+                dbc.NavLink("Visão Geral da Base de Dados", href="/pagina_detalhes", active="exact"),
             ],
             vertical=True,
             pills=True,
@@ -49,11 +50,9 @@ app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
 @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
 def render_page_content(pathname):
     if pathname == "/":
-        return html.P("This is the content of the home page!")
-    elif pathname == "/teste":
-        return teste_layout  
-    elif pathname == "/page-2":
-        return html.P("Oh cool, this is page 2!")
+        return pagina_indv_jogo  
+    elif pathname == "/pagina_detalhes":
+        return pagina_detalhes
  
     return html.Div(
         [
