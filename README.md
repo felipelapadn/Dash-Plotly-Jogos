@@ -2,10 +2,7 @@
 
 ### Objetivo Geral
 
-1. Oferecer uma visão centralizada e intuitiva dos principais indicadores de desempenho dos jogos (como pico de jogadores simultâneos, tempo de jogo, preço e avaliações).
-2. Avaliar tanto o engajamento (playtime, playtime mediano) quanto a satisfação dos usuários (`pct_pos_total`, `recommendations`) em tempo real.
-3. Mensurar o impacto de estratégias comerciais (preço e descontos) sobre o comportamento do jogador e receita estimada.
-4. Identificar oportunidades de loteamento e crescimento por plataforma, idioma, DLCs e temas mais populares (tags).
+1. Oferecer uma visão centralizada e intuitiva dos principais indicadores de desempenho dos jogos (como pico de jogadores simultâneos, preço e avaliações).
 5. Apoiar decisões táticas e estratégicas das equipes de produto, marketing e infraestrutura através de comparações, benchmarks e insights acionáveis.
 
 ### Público‑alvo

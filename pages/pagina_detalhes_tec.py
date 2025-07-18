@@ -6,6 +6,13 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+def limite_superior(data):
+    q1 = data.quantile(0.25)
+    q3 = data.quantile(0.75)
+    iqr = q3 - q1
+
+    return q3 + 1.5 * iqr
+
 IMG_STYLE = {
     "border-radius": "8px",
     'height': '200px'
@@ -105,7 +112,7 @@ def atualizar_grafico(start_date, end_date, value):
         rows=1, cols=2,
         subplot_titles=(
             "Distribuição de Jogos por Combinação de Plataformas",
-            "Preço médio por publisher"
+            "Preço médio por Estúdio"
         ),
         shared_yaxes=False
     )
@@ -145,7 +152,7 @@ def atualizar_grafico(start_date, end_date, value):
     fig.update_xaxes(title_text='Plataformas', tickangle=-45, row=1, col=1)
     fig.update_yaxes(title_text='Número de Jogos', domain=[0.0, 0.95], row=1, col=1)
 
-    fig.update_xaxes(title_text='Publisher', tickangle=-45, row=1, col=2)
+    fig.update_xaxes(title_text='Estúdio', tickangle=-45, row=1, col=2)
     fig.update_yaxes(title_text='Preço ($)', domain=[0.0, 0.95], row=1, col=2)
 
     return fig
@@ -169,17 +176,21 @@ def mostrar_imagem(start_date, end_date, value):
         ]
 
     filtered_df.reset_index(drop=True, inplace=True)
+    filtered_df["len_supported_languages"] = filtered_df["supported_languages"].apply(lambda x: len(eval(x)))
     
-    df_filtered_age = filtered_df.query("required_age > 0")
+    limite_superior_positive = limite_superior(filtered_df.positive)
+    limite_superior_peak = limite_superior(filtered_df.peak_ccu)
+        
+    df_filtered_age = filtered_df.query("required_age == 0 and positive < @limite_superior_positive and peak_ccu < @limite_superior_peak")
     fig_age = go.Figure()
 
     fig_age.add_trace(go.Scatter(
-        x=df_filtered_age["pct_pos_total"],
+        x=df_filtered_age["positive"],
         y=df_filtered_age["price"],
         mode='markers',
         marker=dict(
-            size=df_filtered_age["required_age"],
-            color=df_filtered_age["required_age"],
+            # size=df_filtered_age["required_age"],
+            color=df_filtered_age["peak_ccu"],
             colorscale='blues',
             showscale=True,
             colorbar=dict(title="Idade Requerida")
@@ -188,17 +199,31 @@ def mostrar_imagem(start_date, end_date, value):
         hovertemplate=(
             "<b>%{text}</b><br>" +
             "Preço: R$ %{y:.2f}<br>" +
-            "Avaliações Positivas: %{x:.1f}%<br>" +
-            "Idade Requerida: %{marker.color} anos"
+            "Qtd. Avaliações Positivas: %{x:.1f}<br>" +
+            "Jogadores Ativos Simultaneamente: %{marker.color}"
         )
     ))
+    fig_age.update_traces(marker_size=20)
 
     fig_age.update_layout(
-        title="Relação entre Avaliações Positivas, Preço e Idade Requerida dos Jogos",
+        title="Como o Preço de Jogos e o Pico de Jogadores Ativos Simultaneamente Influenciam nas Avaliações Positivas",
         xaxis_title="Percentual de Avaliações Positivas (%)",
         yaxis_title="Preço ($)",
         template="plotly_white",
-        height=600
+        height=600,
+        annotations=[
+            dict(
+                text="Este gráfico foi elaborado com base em jogos de classificação livre para jogar e dados abaixo do 3º quartil, a fim de evitar outliers.",
+                xref="paper",
+                yref="paper",
+                x=0.49,
+                y=1.02,  
+                showarrow=False,
+                font=dict(size=14, color="grey"),
+                xanchor='center',
+                yanchor='bottom'
+            )
+        ]
     )
     
     return fig_age

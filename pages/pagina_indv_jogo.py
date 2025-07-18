@@ -126,7 +126,6 @@ def mostrar_imagem(clickData, start_date, end_date, value):
     if clickData:
         jogo = clickData['points'][0]['y']
         url_imagem = filtered_df[filtered_df['name'] == jogo]['header_image'].values[0]
-
         return html.Img(src=url_imagem, style=IMG_STYLE)
     else:
         url_imagem = filtered_df['header_image'].values[0]
@@ -186,7 +185,7 @@ def atualizar_grafico_atividade(clickData, start_date, end_date, value):
     ))
 
     fig_atividade.update_layout(
-        title='Relação atividade x recomendações',
+        title='Recomendações vs Pico de Jogadores Simultâneos',
         xaxis_title='Recommendations',
         yaxis_title='Peak_ccu',
         template='plotly_white',
